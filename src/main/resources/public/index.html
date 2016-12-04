@@ -5,24 +5,22 @@
 
         const url = 'ws://'+window.location.host+'/ws';
 
-        var xmlHttp = new XMLHttpRequest();
-        xmlHttp.open("GET", "/settings", true);
-
-        xmlHttp.onreadystatechange = function() {
-            if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
-                start(xmlHttp.mode);
-            }
-        };
-
-        xmlHttp.send(null);
+        $.get("/settings", function (data) {
+            start(data);
+        });
 
         function start(mode) {
             if(mode == "true") {
                 connectToWs();
             } else {
                 setInterval(function () {
-                    var audio = new Audio("/play");
-                    audio.play();
+                    try {
+                        var audio = new Audio("/play");
+                        audio.play();
+                    } catch(test){
+                        console.log(test);
+                    }
+
                 }, 500);
             }
         }
@@ -37,6 +35,9 @@
             wsConnect.onmessage = function(msg){
                 log("Received message:" + msg.data);
                 var audio = new Audio('/play?text='+encodeURIComponent(msg.data));
+                audio.onerror = function (event) {
+                    console.log(event)
+                };
                 audio.play();
             };
 

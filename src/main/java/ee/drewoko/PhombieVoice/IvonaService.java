@@ -43,7 +43,7 @@ class IvonaService {
     }
 
     private IvonaCredential getIvonaCredential() {
-        return ivonaCredentials.get(ThreadLocalRandom.current().nextInt(0, ivonaCredentials.size() + 1));
+        return ivonaCredentials.get(ThreadLocalRandom.current().nextInt(0, ivonaCredentials.size()));
     }
 
     String getTTSUrl(String text) throws UnsupportedEncodingException {

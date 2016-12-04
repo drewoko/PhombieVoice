@@ -55,6 +55,8 @@ class WebService {
 
         get("/play", (req, res) -> {
 
+            System.out.println("Play request received");
+
             res.raw().addHeader("Cache-Control", "no-cache, no-store, must-revalidate");
             res.raw().addHeader("Pragma", "no-cache");
             res.raw().addHeader("Expires", "0");
@@ -85,6 +87,7 @@ class WebService {
             inputStream = new URL(IvonaService.getInstance().getTTSUrl(text)).openStream();
             IOUtils.copy(inputStream, res.raw().getOutputStream());
         } catch (Exception e) {
+            e.printStackTrace();
             res.status(503);
             res.body("failed to get TTS");
         } finally {
