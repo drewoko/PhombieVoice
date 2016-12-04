@@ -1,0 +1,62 @@
+<html>
+<head>
+    <script src="https://code.jquery.com/jquery-3.1.1.js"></script>
+    <script>
+
+        const url = 'ws://'+window.location.host+'/ws';
+
+        var xmlHttp = new XMLHttpRequest();
+        xmlHttp.open("GET", "/settings", true);
+
+        xmlHttp.onreadystatechange = function() {
+            if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
+                start(xmlHttp.mode);
+            }
+        };
+
+        xmlHttp.send(null);
+
+        function start(mode) {
+            if(mode == "true") {
+                connectToWs();
+            } else {
+                setInterval(function () {
+                    var audio = new Audio("/play");
+                    audio.play();
+                }, 500);
+            }
+        }
+
+        function connectToWs() {
+
+            var wsConnect = new WebSocket(url);
+
+            wsConnect.onerror = function (err) {
+                log("Error:" + err)
+            };
+            wsConnect.onmessage = function(msg){
+                log("Received message:" + msg.data);
+                var audio = new Audio('/play?text='+encodeURIComponent(msg.data));
+                audio.play();
+            };
+
+            wsConnect.onopen = function(){
+                log("Connection opened");
+            };
+
+            wsConnect.onclose = function () {
+                log("Connection closed");
+                connectToWs();
+            };
+        }
+
+        function log(msg) {
+            $('#debug').append(msg + "<br>");
+            console.log(msg);
+        }
+    </script>
+</head>
+<body id="debug" style="color:red">
+
+</body>
+</html>
