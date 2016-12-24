@@ -6,16 +6,17 @@
         const url = 'ws://'+window.location.host+'/ws';
 
         $.get("/settings", function (data) {
-            start(data);
+            start(JSON.parse(data));
         });
 
         function start(mode) {
-            if(mode == "true") {
-                connectToWs();
+            if(mode.ws) {
+                connectToWs(mode.playBackSpeed);
             } else {
                 setInterval(function () {
                     try {
                         var audio = new Audio("/play");
+                        audio.playbackRate = parseFloat(mode.playBackSpeed);
                         audio.play();
                     } catch(test){
                         console.log(test);
@@ -25,7 +26,7 @@
             }
         }
 
-        function connectToWs() {
+        function connectToWs(playbackSpeed) {
 
             var wsConnect = new WebSocket(url);
 
@@ -35,6 +36,7 @@
             wsConnect.onmessage = function(msg){
                 log("Received message:" + msg.data);
                 var audio = new Audio('/play?text='+encodeURIComponent(msg.data));
+                audio.playbackRate = parseFloat(playbackSpeed);
                 audio.onerror = function (event) {
                     console.log(event)
                 };
@@ -47,7 +49,7 @@
 
             wsConnect.onclose = function () {
                 log("Connection closed");
-                connectToWs();
+                connectToWs(playbackSpeed);
             };
         }
 

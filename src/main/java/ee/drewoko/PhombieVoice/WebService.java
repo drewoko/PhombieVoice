@@ -1,7 +1,9 @@
 package ee.drewoko.PhombieVoice;
 
 import com.amazonaws.util.IOUtils;
+import org.json.JSONObject;
 import spark.Response;
+import spark.ResponseTransformer;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,8 +24,7 @@ class WebService {
         if(optionsParser.isWs()) {
             webSocket("/ws", WebSocketHandler.class);
         }
-
-        get("/settings", (req, res) -> optionsParser.isWs());
+        get("/settings", (req, res) -> new SettingsResponse(optionsParser.isWs(), optionsParser.getAudioPlayBackSpeed()), new JsonConverter());
 
         get("/request", (req, res) -> {
 
@@ -100,4 +101,12 @@ class WebService {
             }
         }
     }
+
+    class JsonConverter implements ResponseTransformer {
+        @Override
+        public String render(Object model) {
+            return new JSONObject(model).toString();
+        }
+    }
+
 }

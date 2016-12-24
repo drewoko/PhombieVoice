@@ -15,6 +15,7 @@ public class OptionsParser {
     private String ivonaKeysFile;
     private String ivonaVoice;
     private String ivonaEntryPoint;
+    private String audioPlayBackSpeed;
 
     OptionsParser(String[] args) {
         this.args = args;
@@ -33,6 +34,7 @@ public class OptionsParser {
         options.addOption("ik", "ivona-keys", true, "File with ivonna clound API keys");
         options.addOption("iv", "ivona-voice", true, "Ivona voice. https://goo.gl/1vk7xq");
         options.addOption("ie", "ivona-entry", true, "Ivona Cloud Entry-point. https://tts.us-east-1.ivonacloud.com");
+        options.addOption("ps", "play-speed", true, "Audio playback speed");
 
         CommandLineParser parser = new DefaultParser();
         try {
@@ -50,6 +52,7 @@ public class OptionsParser {
             ivonaKeysFile = cmd.getOptionValue("ik", "ivonakeys.txt");
             ivonaVoice = cmd.getOptionValue("iv", "Maxim");
             ivonaEntryPoint = cmd.getOptionValue("ie", "https://tts.us-east-1.ivonacloud.com");
+            audioPlayBackSpeed = cmd.getOptionValue("ps", "1");
 
         } catch (ParseException e) {
             System.err.println("Failed to parse options");
@@ -82,8 +85,12 @@ public class OptionsParser {
         return ivonaEntryPoint;
     }
 
-    public boolean isWs() {
+    boolean isWs() {
         return ws;
+    }
+
+    public String getAudioPlayBackSpeed() {
+        return audioPlayBackSpeed;
     }
 
     static OptionsParser getInstance() {
