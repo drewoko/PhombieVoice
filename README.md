@@ -1,6 +1,6 @@
 # PHombie Voice
 
-Simple application for requesting throw http requests and playing audio throw browser. 
+Simple application for requesting audio speech throw http requests and playing audio in browser. 
 Can we used for generating audio directly from Ivona Cloud.
 
 As Ivona Cloud have very unclear pricing policy, this application uses trial period of it - using key rotation.
