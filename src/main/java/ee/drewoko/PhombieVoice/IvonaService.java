@@ -46,7 +46,7 @@ class IvonaService {
         return ivonaCredentials.get(ThreadLocalRandom.current().nextInt(0, ivonaCredentials.size()));
     }
 
-    String getTTSUrl(String text) throws UnsupportedEncodingException {
+    String getTTSUrl(String text, String voiceStr) throws UnsupportedEncodingException {
         IvonaSpeechCloudClient speechCloud = new IvonaSpeechCloudClient(
                 IvonaService.getInstance().getIvonaCredential()
         );
@@ -58,7 +58,7 @@ class IvonaService {
         Voice voice = new Voice();
         OutputFormat outputFormat = new OutputFormat();
 
-        voice.setName(OptionsParser.getInstance().getIvonaVoice());
+        voice.setName(voiceStr);
 
         input.setData(text);
 

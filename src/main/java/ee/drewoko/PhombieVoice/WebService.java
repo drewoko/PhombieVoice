@@ -1,30 +1,26 @@
 package ee.drewoko.PhombieVoice;
 
 import com.amazonaws.util.IOUtils;
-import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import spark.Response;
-import spark.ResponseTransformer;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static spark.Spark.*;
 
 class WebService {
 
-    private ConcurrentLinkedQueue<String> simpleQueue = new ConcurrentLinkedQueue<>();
+    private final static Logger log = LoggerFactory.getLogger(WebService.class);
 
     WebService(final OptionsParser optionsParser) {
 
         port(Integer.parseInt(optionsParser.getWebPort()));
         staticFiles.location("/public");
 
-        if(optionsParser.isWs()) {
-            webSocket("/ws", WebSocketHandler.class);
-        }
-        get("/settings", (req, res) -> new SettingsResponse(optionsParser.isWs(), optionsParser.getAudioPlayBackSpeed()), new JsonConverter());
+        webSocket("/ws", WebSocketHandler.class);
 
         get("/request", (req, res) -> {
 
@@ -35,60 +31,74 @@ class WebService {
                 return "Please specify request text";
             }
 
-            System.out.printf("Sending request to play: %s\n", text);
+            String voice = req.queryParams("voice");
 
-            if(optionsParser.isWs()) {
-                WebSocketHandler.getSessions().forEach(session -> {
-                    try {
-                        session.getRemote().sendString(text);
-                    } catch (IOException e) {
-                        System.err.println("Failed to send request to WS session, closing it");
-                        session.close();
-                        e.printStackTrace();
-                    }
-                });
-            } else {
-                simpleQueue.add(text);
+            if(voice == null) {
+                voice = optionsParser.getIvonaVoice();
             }
+
+            String playbackSpeed = req.queryParams("speed");
+
+            if(playbackSpeed == null) {
+                playbackSpeed = optionsParser.getAudioPlayBackSpeed();
+            }
+
+            String playImmediatelyStr = req.queryParams("immediately");
+            Boolean playImmediately = optionsParser.getPlayImmediately();
+
+            if(playImmediatelyStr != null) {
+                playImmediately = Boolean.valueOf(playImmediatelyStr);
+            }
+
+            log.info(String.format("Sending request to play with %s voice and %s speed: %s\n", voice, playbackSpeed, text));
+
+            Play playReq = new Play(text, voice, playbackSpeed, playImmediately);
+
+            WebSocketHandler.getSessions().forEach(session -> {
+                try {
+                    session.getRemote().sendString(playReq.toJson());
+                } catch (IOException e) {
+                    log.error("Failed to send request to WS session, closing it", e);
+                    session.close();
+                }
+            });
 
             return "TTS requested";
         });
 
         get("/play", (req, res) -> {
 
-            System.out.println("Play request received");
+            log.info("Play request received");
 
             res.raw().addHeader("Cache-Control", "no-cache, no-store, must-revalidate");
             res.raw().addHeader("Pragma", "no-cache");
             res.raw().addHeader("Expires", "0");
 
-            if(optionsParser.isWs()) {
-                String text = req.queryParams("text");
-                if (text == null) {
-                    res.status(400);
-                    return "text get parameter not presented";
-                }
-                processTTS(res, text);
-            } else {
-                if(simpleQueue.size() == 0) {
-                    res.status(204);
-                } else {
-                    processTTS(res, simpleQueue.poll());
-                }
+            String text = req.queryParams("text");
+            if (text == null) {
+                res.status(400);
+                return "text get parameter not presented";
             }
+            String voice = req.queryParams("voice");
+            if (voice == null) {
+                res.status(400);
+                return "voice get parameter not presented";
+            }
+            processTTS(res, text, voice);
+
             return res.raw();
         });
     }
 
-    private void processTTS(Response res, String text) {
+    private void processTTS(Response res, String text, String voice) {
 
         res.raw().setContentType("audio/ogg");
         InputStream inputStream = null;
         try {
-            inputStream = new URL(IvonaService.getInstance().getTTSUrl(text)).openStream();
+            inputStream = new URL(IvonaService.getInstance().getTTSUrl(text, voice)).openStream();
             IOUtils.copy(inputStream, res.raw().getOutputStream());
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("failed to get TTS", e);
             res.status(503);
             res.body("failed to get TTS");
         } finally {
@@ -96,17 +106,9 @@ class WebService {
                 try {
                     inputStream.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    log.error("failed to close stream", e);
                 }
             }
         }
     }
-
-    class JsonConverter implements ResponseTransformer {
-        @Override
-        public String render(Object model) {
-            return new JSONObject(model).toString();
-        }
-    }
-
 }

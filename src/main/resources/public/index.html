@@ -1,65 +1,79 @@
 <html>
 <head>
     <script src="https://code.jquery.com/jquery-3.1.1.js"></script>
-    <script>
-
-        const url = 'ws://'+window.location.host+'/ws';
-
-        $.get("/settings", function (data) {
-            start(JSON.parse(data));
-        });
-
-        function start(mode) {
-            if(mode.ws) {
-                connectToWs(mode.playBackSpeed);
-            } else {
-                setInterval(function () {
-                    try {
-                        var audio = new Audio("/play");
-                        audio.playbackRate = parseFloat(mode.playBackSpeed);
-                        audio.play();
-                    } catch(test){
-                        console.log(test);
-                    }
-
-                }, 500);
-            }
-        }
-
-        function connectToWs(playbackSpeed) {
-
-            var wsConnect = new WebSocket(url);
-
-            wsConnect.onerror = function (err) {
-                log("Error:" + err)
-            };
-            wsConnect.onmessage = function(msg){
-                log("Received message:" + msg.data);
-                var audio = new Audio('/play?text='+encodeURIComponent(msg.data));
-                audio.playbackRate = parseFloat(playbackSpeed);
-                audio.onerror = function (event) {
-                    console.log(event)
-                };
-                audio.play();
-            };
-
-            wsConnect.onopen = function(){
-                log("Connection opened");
-            };
-
-            wsConnect.onclose = function () {
-                log("Connection closed");
-                connectToWs(playbackSpeed);
-            };
-        }
-
-        function log(msg) {
-            $('#debug').append(msg + "<br>");
-            console.log(msg);
-        }
-    </script>
 </head>
 <body id="debug" style="color:red">
 
+<script type="text/javascript">
+    const url = 'ws://'+window.location.host+'/ws';
+    const debug = $('#debug');
+
+    var audioQueue = [];
+
+    start();
+
+    function start() {
+        var wsConnect = new WebSocket(url);
+
+        wsConnect.onmessage = function(msg){
+            var data = JSON.parse(msg.data);
+
+            log("Received message:" + JSON.stringify(data));
+
+            if(data.immediately) {
+                play(data.text, data.speed, data.voice, data.immediately);
+            } else {
+                audioQueue.push(data);
+
+                if(audioQueue.length == 1) {
+                    queuePlay();
+                }
+            }
+        };
+
+        //System
+        wsConnect.onerror = function (err) {
+            log("Error:" + JSON.stringify(err))
+        };
+        wsConnect.onopen = function(){
+            log("Connection opened");
+        };
+
+        wsConnect.onclose = function () {
+            log("Connection closed");
+            start();
+        };
+    }
+
+    function queuePlay() {
+        if(audioQueue.length > 0) {
+            var req = audioQueue[0];
+            play(req.text, req.speed, req.voice, req.immediately);
+        }
+    }
+
+    function play(text, speed, voice, immediately) {
+        var audio = new Audio('/play?text='+encodeURIComponent(text)+"&voice="+voice);
+        audio.playbackRate = parseFloat(speed);
+
+        audio.onerror = function (event) {
+            log(JSON.stringify(event))
+        };
+
+        if(!immediately) {
+            audio.addEventListener("ended", function() {
+                audioQueue.shift();
+                queuePlay();
+            });
+        }
+
+        audio.play();
+    }
+
+    function log(msg) {
+        debug.append(msg + "<br />");
+        console.log(msg);
+    }
+</script>
 </body>
 </html>

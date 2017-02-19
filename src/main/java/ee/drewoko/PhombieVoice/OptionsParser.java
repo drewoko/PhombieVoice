@@ -2,7 +2,7 @@ package ee.drewoko.PhombieVoice;
 
 import org.apache.commons.cli.*;
 
-public class OptionsParser {
+class OptionsParser {
 
     private static OptionsParser instance;
 
@@ -10,12 +10,12 @@ public class OptionsParser {
     private Options options;
 
     private boolean help = false;
-    private boolean ws = false;
     private String webPort;
     private String ivonaKeysFile;
     private String ivonaVoice;
     private String ivonaEntryPoint;
     private String audioPlayBackSpeed;
+    private Boolean playImmediately;
 
     OptionsParser(String[] args) {
         this.args = args;
@@ -29,12 +29,12 @@ public class OptionsParser {
         options = new Options();
 
         options.addOption("h", "help", false, "Print instruction");
-        options.addOption("ws", false, "Enables WebSocket Transport");
         options.addOption("p", "web-port", true, "Http service port");
-        options.addOption("ik", "ivona-keys", true, "File with ivonna clound API keys");
+        options.addOption("ik", "ivona-keys", true, "File with ivona clound API keys");
         options.addOption("iv", "ivona-voice", true, "Ivona voice. https://goo.gl/1vk7xq");
         options.addOption("ie", "ivona-entry", true, "Ivona Cloud Entry-point. https://tts.us-east-1.ivonacloud.com");
         options.addOption("ps", "play-speed", true, "Audio playback speed");
+        options.addOption("pi", "play-immediately", true, "Play immediately or wait till last will be played");
 
         CommandLineParser parser = new DefaultParser();
         try {
@@ -44,15 +44,12 @@ public class OptionsParser {
                 help = true;
             }
 
-            if(cmd.hasOption("ws")) {
-                ws = true;
-            }
-
             webPort = cmd.getOptionValue("p", "8080");
             ivonaKeysFile = cmd.getOptionValue("ik", "ivonakeys.txt");
-            ivonaVoice = cmd.getOptionValue("iv", "Maxim");
+            ivonaVoice = cmd.getOptionValue("iv", "Justin");
             ivonaEntryPoint = cmd.getOptionValue("ie", "https://tts.us-east-1.ivonacloud.com");
             audioPlayBackSpeed = cmd.getOptionValue("ps", "1");
+            playImmediately = Boolean.valueOf(cmd.getOptionValue("pi", "true"));
 
         } catch (ParseException e) {
             System.err.println("Failed to parse options");
@@ -85,12 +82,12 @@ public class OptionsParser {
         return ivonaEntryPoint;
     }
 
-    boolean isWs() {
-        return ws;
+    String getAudioPlayBackSpeed() {
+        return audioPlayBackSpeed;
     }
 
-    public String getAudioPlayBackSpeed() {
-        return audioPlayBackSpeed;
+    Boolean getPlayImmediately() {
+        return playImmediately;
     }
 
     static OptionsParser getInstance() {
