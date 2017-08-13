@@ -34,7 +34,7 @@ class WebService {
             String voice = req.queryParams("voice");
 
             if(voice == null) {
-                voice = optionsParser.getIvonaVoice();
+                voice = optionsParser.getVoice();
             }
 
             String playbackSpeed = req.queryParams("speed");
@@ -95,7 +95,7 @@ class WebService {
         res.raw().setContentType("audio/ogg");
         InputStream inputStream = null;
         try {
-            inputStream = new URL(IvonaService.getInstance().getTTSUrl(text, voice)).openStream();
+            inputStream = SoundService.getInstance().getTTS(text, voice);
             IOUtils.copy(inputStream, res.raw().getOutputStream());
         } catch (Exception e) {
             log.error("failed to get TTS", e);

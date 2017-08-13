@@ -11,9 +11,12 @@ class OptionsParser {
 
     private boolean help = false;
     private String webPort;
-    private String ivonaKeysFile;
-    private String ivonaVoice;
-    private String ivonaEntryPoint;
+
+    private String amazonAccessKey;
+    private String amazonSecretKey;
+
+    private String voice;
+
     private String audioPlayBackSpeed;
     private Boolean playImmediately;
 
@@ -30,9 +33,9 @@ class OptionsParser {
 
         options.addOption("h", "help", false, "Print instruction");
         options.addOption("p", "web-port", true, "Http service port");
-        options.addOption("ik", "ivona-keys", true, "File with ivona clound API keys");
-        options.addOption("iv", "ivona-voice", true, "Ivona voice. https://goo.gl/1vk7xq");
-        options.addOption("ie", "ivona-entry", true, "Ivona Cloud Entry-point. https://tts.us-east-1.ivonacloud.com");
+        options.addOption("ak", "aws-accesskey", true, "Amazon AWS access key");
+        options.addOption("as", "aws-secretkey", true, "Amazon AWS secret key");
+        options.addOption("v", "voice", true, "Playback voice");
         options.addOption("ps", "play-speed", true, "Audio playback speed");
         options.addOption("pi", "play-immediately", true, "Play immediately or wait till last will be played");
 
@@ -45,9 +48,9 @@ class OptionsParser {
             }
 
             webPort = cmd.getOptionValue("p", "8080");
-            ivonaKeysFile = cmd.getOptionValue("ik", "ivonakeys.txt");
-            ivonaVoice = cmd.getOptionValue("iv", "Justin");
-            ivonaEntryPoint = cmd.getOptionValue("ie", "https://tts.us-east-1.ivonacloud.com");
+            amazonAccessKey = cmd.getOptionValue("ak", "");
+            amazonSecretKey = cmd.getOptionValue("as", "");
+            voice = cmd.getOptionValue("v", "Justin");
             audioPlayBackSpeed = cmd.getOptionValue("ps", "1");
             playImmediately = Boolean.valueOf(cmd.getOptionValue("pi", "true"));
 
@@ -70,16 +73,16 @@ class OptionsParser {
         return webPort;
     }
 
-    String getIvonaKeysFile() {
-        return ivonaKeysFile;
+    public String getAmazonAccessKey() {
+        return amazonAccessKey;
     }
 
-    String getIvonaVoice() {
-        return ivonaVoice;
+    public String getAmazonSecretKey() {
+        return amazonSecretKey;
     }
 
-    String getIvonaEntryPoint() {
-        return ivonaEntryPoint;
+    public String getVoice() {
+        return voice;
     }
 
     String getAudioPlayBackSpeed() {

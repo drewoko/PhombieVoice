@@ -19,8 +19,8 @@ public class Starter {
             return;
         }
 
-        log.info(String.format("Starting with Web-port: %s, ivona-keys: %s, ivona-voice: %s\n",
-                optionsParser.getWebPort(), optionsParser.getIvonaKeysFile(), optionsParser.getIvonaVoice()));
+        log.info(String.format("Starting with Web-port: %s, Amazon AWS Access Key: %s, Amazon AWS Secret Key: %s\n",
+                optionsParser.getWebPort(), optionsParser.getAmazonAccessKey(), optionsParser.getAmazonSecretKey()));
 
         System.out.printf("Open address in browser http://localhost:%s \n", optionsParser.getWebPort());
         System.out.printf("Send requests to http://localhost:%s/request \n", optionsParser.getWebPort());
@@ -35,9 +35,9 @@ public class Starter {
         System.out.println();
 
         try {
-            new IvonaService();
+            new SoundService();
         } catch (IOException e) {
-            log.error("Failed to start IvonaService. Looks like unable to parse IvonaKeys", e);
+            log.error("Failed to start AudioService.", e);
             System.exit(0);
         }
 
