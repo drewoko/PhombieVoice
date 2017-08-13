@@ -48,8 +48,8 @@ class OptionsParser {
             }
 
             webPort = cmd.getOptionValue("p", "8080");
-            amazonAccessKey = cmd.getOptionValue("ak", "");
-            amazonSecretKey = cmd.getOptionValue("as", "");
+            amazonAccessKey = cmd.getOptionValue("ak", null);
+            amazonSecretKey = cmd.getOptionValue("as", null);
             voice = cmd.getOptionValue("v", "Justin");
             audioPlayBackSpeed = cmd.getOptionValue("ps", "1");
             playImmediately = Boolean.valueOf(cmd.getOptionValue("pi", "true"));
